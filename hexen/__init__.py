@@ -224,7 +224,7 @@ class HexenWorld(World):
         # the Emerald Key or Shadow Wood (if unlocked).
         if (starting_level == "Seven Portals"):
             if self.included_hubs[1]: # Shadow Wood is unlocked
-                emerald_key_item = self.multiworld.random.choice(['Emerald Key', 'Shadow Wood'])
+                emerald_key_item = self.multiworld.random.choices(['Emerald Key', 'Shadow Wood'], weights=[6, 2])[0]
             else:
                 emerald_key_item = 'Emerald Key'
         
@@ -235,7 +235,7 @@ class HexenWorld(World):
         # Hall items is either the Silver Key or Shadow Wood (if unlocked).
         if (emerald_key_item == 'Emerald Key'):
             if self.included_hubs[1]: # Shadow Wood is unlocked
-                winnowing_hall_additional_item = self.multiworld.random.choice(['Silver Key', 'Shadow Wood'])
+                winnowing_hall_additional_item = self.multiworld.random.choices(['Silver Key', 'Shadow Wood'], weights=[4, 2])[0]
             else:
                 winnowing_hall_additional_item = 'Silver Key'
 
