@@ -60,28 +60,34 @@ class HexenWorld(World):
         "Necropolis",
     ]
 
-    fighter_weapons: List[str] = [
+    weapon2_by_class: List[str] = [
         "Timon's Axe",
-        "Hammer of Retribution",
-        "Quietus Blade",
-        "Quietus Cross",
-        "Quietus Hilt",
-    ]
-
-    cleric_weapons: List[str] = [
         "Serpent Staff",
-        "Firestorm",
-        "Wraithverge Arc",
-        "Wraithverge Cross",
-        "Wraithverge Shaft",
+        "Frost Shards"
     ]
 
-    mage_weapons: List[str] = [
-        "Frost Shards",
-        "Arc of Death",
-        "Bloodscourge Skull",
-        "Bloodscourge Stub",
-        "Bloodscourge Stick",
+    weapon3_by_class: List[str] = [
+        "Hammer of Retribution",
+        "Firestorm",
+        "Arc of Death"
+    ]
+
+    weapon4_pieces_by_class: List[List[str]] = [
+        [
+            "Quietus Blade",
+            "Quietus Cross",
+            "Quietus Hilt"
+        ],
+        [
+            "Wraithverge Arc",
+            "Wraithverge Cross",
+            "Wraithverge Shaft"
+        ],
+        [
+            "Bloodscourge Skull",
+            "Bloodscourge Stub",
+            "Bloodscourge Stick"
+        ]
     ]
 
     # Item ratio. This is an overall count, scaled down by number of hubs.
@@ -213,10 +219,18 @@ class HexenWorld(World):
         starting_level: str = ""
         emerald_key_item: str = ""
         winnowing_hall_additional_item: str = ""
+        start_with_weapon2: bool = False
+        start_with_weapon3: bool = False
+        start_with_weapon4: bool = False
 
         # Grab starting level
         for i in range(len(self.included_hubs)):
             if self.included_hubs[i]:
+                if (i > 1): # Start with weapons 2/3 if starting hub isn't Seven Portals or Shadow Wood
+                    start_with_weapon2 = True
+                    start_with_weapon3 = True
+                if (i == 4): # Start with weapon 4 if starting hub is Necropolis (Necropolis only)
+                    start_with_weapon4 = True
                 starting_level = self.starting_level_for_hub[i]
                 break
 
@@ -228,23 +242,23 @@ class HexenWorld(World):
             else:
                 emerald_key_item = 'Emerald Key'
         
-        self.multiworld.get_location('Seven Portals - Winnowing Hall - Emerald Key', self.player).place_locked_item(self.create_item(emerald_key_item))
-        self.location_count -= 1
-
-        # If the Emerald Key item is the Emerald Key, guarantee that one of the two remaining Winnowing
-        # Hall items is either the Silver Key or Shadow Wood (if unlocked).
-        if (emerald_key_item == 'Emerald Key'):
-            if self.included_hubs[1]: # Shadow Wood is unlocked
-                winnowing_hall_additional_item = self.multiworld.random.choices(['Silver Key', 'Shadow Wood'], weights=[4, 2])[0]
-            else:
-                winnowing_hall_additional_item = 'Silver Key'
-
-            winnowing_hall_additional_loc = self.multiworld.random.choice([
-                'Seven Portals - Winnowing Hall - Silver Key',
-                'Seven Portals - Winnowing Hall - Platinum Helm'
-            ])
-            self.multiworld.get_location(winnowing_hall_additional_loc, self.player).place_locked_item(self.create_item(winnowing_hall_additional_item))
+            self.multiworld.get_location('Seven Portals - Winnowing Hall - Emerald Key', self.player).place_locked_item(self.create_item(emerald_key_item))
             self.location_count -= 1
+
+            # If the Emerald Key item is the Emerald Key, guarantee that one of the two remaining Winnowing
+            # Hall items is either the Silver Key or Shadow Wood (if unlocked).
+            if (emerald_key_item == 'Emerald Key'):
+                if self.included_hubs[1]: # Shadow Wood is unlocked
+                    winnowing_hall_additional_item = self.multiworld.random.choices(['Silver Key', 'Shadow Wood'], weights=[4, 2])[0]
+                else:
+                    winnowing_hall_additional_item = 'Silver Key'
+
+                winnowing_hall_additional_loc = self.multiworld.random.choice([
+                    'Seven Portals - Winnowing Hall - Silver Key',
+                    'Seven Portals - Winnowing Hall - Platinum Helm'
+                ])
+                self.multiworld.get_location(winnowing_hall_additional_loc, self.player).place_locked_item(self.create_item(winnowing_hall_additional_item))
+                self.location_count -= 1
 
         # Items
         for item_id, item in Items.item_table.items():
@@ -255,11 +269,11 @@ class HexenWorld(World):
                 continue
 
             count = item["count"] if (item["name"] != starting_level and item["name"] != emerald_key_item and item["name"] != winnowing_hall_additional_item) else item["count"] - 1
-            if self.options.player_class.value == 0 and item["name"] in self.fighter_weapons:
+            if not start_with_weapon2 and item["name"] == self.weapon2_by_class[self.options.player_class.value]:
                 count = count + 1
-            if self.options.player_class.value == 1 and item["name"] in self.cleric_weapons:
+            if not start_with_weapon3 and item["name"] == self.weapon3_by_class[self.options.player_class.value]:
                 count = count + 1
-            if self.options.player_class.value == 2 and item["name"] in self.mage_weapons:
+            if not start_with_weapon4 and item["name"] in self.weapon4_pieces_by_class[self.options.player_class.value]:
                 count = count + 1
             itempool += [self.create_item(item["name"]) for _ in range(count)]
 
@@ -283,6 +297,16 @@ class HexenWorld(World):
 
         # Give starting level right away
         self.multiworld.push_precollected(self.create_item(starting_level))
+
+        # And any starting weapons
+        if start_with_weapon2:
+            self.multiworld.push_precollected(self.create_item(self.weapon2_by_class[self.options.player_class.value]))
+        if start_with_weapon3:
+            self.multiworld.push_precollected(self.create_item(self.weapon3_by_class[self.options.player_class.value]))
+        if start_with_weapon4:
+            self.multiworld.push_precollected(self.create_item(self.weapon4_pieces_by_class[self.options.player_class.value][0]))
+            self.multiworld.push_precollected(self.create_item(self.weapon4_pieces_by_class[self.options.player_class.value][1]))
+            self.multiworld.push_precollected(self.create_item(self.weapon4_pieces_by_class[self.options.player_class.value][2]))
         
         # Fill the rest starting with powerups, then fillers
         self.create_ratioed_items("Amulet of Warding", itempool)
