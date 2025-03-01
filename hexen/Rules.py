@@ -37,6 +37,9 @@ def set_hub1_rules(player, multiworld, pro):
         state.has("Fire Key", player, 1))
     set_rule(multiworld.get_entrance("Seven Portals - Guardian of Steel - Main -> Seven Portals - Guardian of Steel - Steel Key", player), lambda state:
         state.has("Steel Key", player, 1) and
+        (state.has("Timon's Axe", player, 1) or
+         state.has("Serpent Staff", player, 1) or
+         state.has("Frost Shards", player, 1)) and
         (state.has("Seven Portals - Seven Portals - West Access (1/3)", player, 2) or
          state.has("Seven Portals - Guardian of Ice - Steel Door", player, 1)))
     set_rule(multiworld.get_entrance("Seven Portals - Bright Crucible - Main -> Seven Portals - Bright Crucible - Heart", player), lambda state:
